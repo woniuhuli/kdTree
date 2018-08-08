@@ -1,48 +1,58 @@
-function nearest = kd_search(kdTree,target)
+function [nearest,nearestIndex] = kd_search(rootIndex,Tree,target)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 胡力
 % 2018/8/6
 % kd树的最邻近搜索
-% kdTree：数据点集建立的kd树的根节点
+% rootIndex：数据点集建立的kd树的根节点下标(在树cell中的位置）
 % target：目标点坐标
+% Tree：kd树，cell类型
+% nearst：点集中距离目标点最近的点下标
 % nearst：点集中距离目标点最近的点坐标
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-currentNode = kdTree;
-
-currentNode = search_down(currentNode,target);% 从currentNode向下搜索到底部
-
-currentNearest = currentNode.val;                    % 当前最近点
+currentNode = rootIndex; %当前节点下标，从根节点开始搜索
+currentNode = search_down(Tree,currentNode,target);% 从currentNode向下搜索到底部
+Tree{currentNode}.visited = 1;
+    
+currentNearest = Tree{currentNode}.val;                    % 当前最近点
 currentNearestDist = norm(currentNearest-target);    % 当前最近距离
+currentNearestIndex = currentNode;
    
-while currentNode.isRoot == 0
-    isLeft = currentNode.isLeft;     %当前节点是左孩子标志
-    currentNode = currentNode.parent;
-    if currentNode.visited == 0
-        currentNode.visited = 1;
-        temp = norm(currentNode.val-target);
+while Tree{currentNode}.isRoot == 0
+    isLeft = Tree{currentNode}.isLeft;     %当前节点是左孩子标志
+    currentNode = Tree{Tree{currentNode}.parent}.index;
+    if Tree{currentNode}.visited == 0
+        Tree{currentNode}.visited = 1;%标记为已访问
+        temp = norm(Tree{currentNode}.val-target);
         if temp<currentNearestDist
-            currentNearest = currentNode.val;
+            currentNearest = Tree{currentNode}.val;
             currentNearestDist = temp;
+            currentNearestIndex = currentNode;
         end
-        temp = abs(currentNode.val(currentNode.r)-target(currentNode.r));   %与当前分割线的距离
+        temp = abs(Tree{currentNode}.val(Tree{currentNode}.r)-target(Tree{currentNode}.r));   %与当前分割线的距离
         if temp<currentNearestDist 
             %当前分割线距离小于当前最小距离，在分割线另一边可能有更近点，跳到另外一边继续搜索
             if isLeft == 1
-                if currentNode.hasRight == 1 %当前节点是左孩子，且父亲节点有右孩子，则搜索父亲节点的右孩子
-                    currentNode = currentNode.right;
-                    currentNode = search_down(currentNode,target);                
-                    temp = norm(target - currentNode.val);
+                if Tree{currentNode}.hasRight == 1 %当前节点的左孩子，且当前节点有右孩子，则搜索右孩子
+                    currentNode = Tree{Tree{currentNode}.right}.index;
+                    currentNode = search_down(Tree,currentNode,target); 
+                    Tree{currentNode}.visited = 1;%标记为已访问
+                    temp = norm(target - Tree{currentNode}.val);
                     if temp < currentNearestDist
-                        currentNearest = currentNode.val;
+                        currentNearest = Tree{currentNode}.val;
+                        currentNearestDist = temp;
+                        currentNearestIndex = currentNode;
                     end
                 end
             else
-                if currentNode.hasLeft == 1  %当前节点是右孩子，且父亲节点有左孩子，则搜索父亲节点的左孩子
-                    currentNode = currentNode.left;
-                    currentNode = search_down(currentNode,target);
-                    temp = norm(target - currentNode.val);
+                if Tree{currentNode}.hasLeft == 1  %当前节点是右孩子，且父亲节点有左孩子，则搜索父亲节点的左孩子
+                    currentNode = Tree{Tree{currentNode}.left}.index;
+                    currentNode = search_down(Tree,currentNode,target);
+                    Tree{currentNode}.visited = 1;%标记为已访问
+                    temp = norm(target - Tree{currentNode}.val);
                     if temp < currentNearestDist
-                        currentNearest = currentNode.val;
+                        currentNearest = Tree{currentNode}.val;
+                        currentNearestDist = temp;
+                        currentNearestIndex = currentNode;
                     end
                 end
             end
@@ -50,6 +60,7 @@ while currentNode.isRoot == 0
     end
 end
 nearest = currentNearest;
+nearestIndex = currentNearestIndex;
             
         
             

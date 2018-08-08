@@ -1,23 +1,22 @@
-function node = search_down(currentNode,target)
+function node = search_down(Tree,currentNode,target)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 从当前节点往下搜索到kd树的底部
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-while currentNode.isLeaf == 0
-    r = currentNode.r;
-    if target(r)<currentNode.val(r)
-        if currentNode.hasLeft == 1
-            currentNode = currentNode.left;
+while Tree{currentNode}.isLeaf == 0
+    r = Tree{currentNode}.r;
+    if target(r)<Tree{currentNode}.val(r)
+        if Tree{currentNode}.hasLeft == 1
+            currentNode = Tree{Tree{currentNode}.left}.index;
         else
-            break;
+            currentNode = Tree{Tree{currentNode}.right}.index;
         end
     else
-        if currentNode.hasRight == 1
-            currentNode = currentNode.right;
+        if Tree{currentNode}.hasRight == 1
+            currentNode = Tree{Tree{currentNode}.right}.index;
         else
-            break;
+            currentNode = Tree{Tree{currentNode}.left}.index;
         end
     end
 end
-currentNode.visited = 1; 
 node = currentNode;

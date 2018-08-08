@@ -1,4 +1,4 @@
-function node = cut_by_r(X,r,currentNode)
+function [node] = cut_by_r(X,r,currentNode)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 根据第r维对X进行切分获得节点
 % X：数据点集
@@ -19,21 +19,24 @@ Node_template = struct(...
     'leftSet',-1,...    分到右边的点集(矩阵),-1表示空集
     'rightSet',-1,...   分到左边的点集(矩阵)，-1表示空集 
     'r',-1,...          切分维度);
-    'visited',0....     搜索时是否访问标志)，0为未访问，1为访问过
+    'visited',0,....     搜索时是否访问标志)，0为未访问，1为访问过
+    'index',-1 ...      下标
     );                  %节点结构体模板
 
-dim = size(X,1);    %数据点的维度
+dim = size(X,1)-1;    %数据点的维度
 num = size(X,2);    %数据集点数
 node = currentNode;
 node.r = r;
 if num == 1
     %数据集中只有一个点
-    node.val = X(:,1);
+    node.val = X(1:dim,1);
     node.isLeaf = 1;
+    node.index = X(dim+1,:);
 else
     X_sorted = sort_by_r(X,r);
     mid = ceil(num/2);
-    node.val = X_sorted(:,mid);
+    node.val = X_sorted(1:dim,mid);
+    node.index = X_sorted(dim+1,mid);
     if mid>1
         node.leftSet = X_sorted(:,1:ceil(num/2)-1);
     end
