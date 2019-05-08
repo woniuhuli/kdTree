@@ -28,8 +28,9 @@ Node_template = struct(...
     );                  %节点结构体模板
 
 num = size(X,2);    %数据集点数
+dim = size(X,1);    %维度
 r = 1;              %当前切分轴
-X(5,:) = 1:num;
+X(dim+1,:) = 1:num; %每个数据的index
 root = Node_template;
 root.isRoot = 1;
 root = cut_by_r(X,r,root);
