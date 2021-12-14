@@ -1,4 +1,4 @@
-function [nearest,nearestIndex] = kd_search(rootIndex,Tree,target)
+function [nearest,nearestIndex] = kd_search(rootIndex,Tree,target, k)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 胡力
 % 2018/8/6
@@ -16,20 +16,28 @@ Tree{currentNode}.visited = 1;
 currentNearest = Tree{currentNode}.val;                    % 当前最近点
 currentNearestDist = norm(currentNearest-target);    % 当前最近距离
 currentNearestIndex = currentNode;
-   
+
+kNearestCandidate = [currentNearestDist, currentNearest', currentNearestIndex];
+
 while Tree{currentNode}.isRoot == 0
     isLeft = Tree{currentNode}.isLeft;     %当前节点是左孩子标志
     currentNode = Tree{Tree{currentNode}.parent}.index;
     if Tree{currentNode}.visited == 0
         Tree{currentNode}.visited = 1;%标记为已访问
         temp = norm(Tree{currentNode}.val-target);
-        if temp<currentNearestDist
+        if temp<kNearestCandidate(end,1) || size(kNearestCandidate, 1)<k
             currentNearest = Tree{currentNode}.val;
             currentNearestDist = temp;
             currentNearestIndex = currentNode;
+            % 加入，排序，末位&长尾淘汰
+            kNearestCandidate = [kNearestCandidate; currentNearestDist, currentNearest', currentNearestIndex];
+            kNearestCandidate = sortrows(kNearestCandidate);
+            if size(kNearestCandidate)>=k
+                kNearestCandidate(k+1:end,:) = [];
+            end
         end
         temp = abs(Tree{currentNode}.val(Tree{currentNode}.r)-target(Tree{currentNode}.r));   %与当前分割线的距离
-        if temp<currentNearestDist 
+        if temp<kNearestCandidate(end,1) || size(kNearestCandidate, 1)<k
             %当前分割线距离小于当前最小距离，在分割线另一边可能有更近点，跳到另外一边继续搜索
             if isLeft == 1
                 if Tree{currentNode}.hasRight == 1 %当前节点的左孩子，且当前节点有右孩子，则搜索右孩子
@@ -37,10 +45,15 @@ while Tree{currentNode}.isRoot == 0
                     currentNode = search_down(Tree,currentNode,target); 
                     Tree{currentNode}.visited = 1;%标记为已访问
                     temp = norm(target - Tree{currentNode}.val);
-                    if temp < currentNearestDist
+                    if temp<kNearestCandidate(end,1) || size(kNearestCandidate, 1)<k
                         currentNearest = Tree{currentNode}.val;
                         currentNearestDist = temp;
                         currentNearestIndex = currentNode;
+                        kNearestCandidate = [kNearestCandidate; currentNearestDist, currentNearest', currentNearestIndex];
+                        kNearestCandidate = sortrows(kNearestCandidate);
+                        if size(kNearestCandidate)>=k
+                            kNearestCandidate(k+1:end,:) = [];
+                        end
                     end
                 end
             else
@@ -49,18 +62,23 @@ while Tree{currentNode}.isRoot == 0
                     currentNode = search_down(Tree,currentNode,target);
                     Tree{currentNode}.visited = 1;%标记为已访问
                     temp = norm(target - Tree{currentNode}.val);
-                    if temp < currentNearestDist
+                    if temp<kNearestCandidate(end,1) || size(kNearestCandidate, 1)<k
                         currentNearest = Tree{currentNode}.val;
                         currentNearestDist = temp;
                         currentNearestIndex = currentNode;
+                        kNearestCandidate = [kNearestCandidate; currentNearestDist, currentNearest', currentNearestIndex];
+                        kNearestCandidate = sortrows(kNearestCandidate);
+                        if size(kNearestCandidate)>=k
+                            kNearestCandidate(k+1:end,:) = [];
+                        end
                     end
                 end
             end
         end
     end
 end
-nearest = currentNearest;
-nearestIndex = currentNearestIndex;
+nearest = kNearestCandidate(:,2:end-1);
+nearestIndex = kNearestCandidate(:,end);
             
         
             
